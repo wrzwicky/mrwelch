@@ -7,8 +7,9 @@ import discord.utils
 ##
 ## "Things Mr. Welch is not allowed to do" bot for Discord
 ## mention @mrwelch for random quote
-## or mention with nubmer for that exact quote
+## or mention with number for that exact quote
 ## or mention with string for random quote containing string
+## or mention with some simple Python code to evaluate that code
 ##
 ## Create file ".env" with secret keys:
 ##   DISCORD_AUTHOR_ID

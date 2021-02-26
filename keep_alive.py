@@ -1,3 +1,8 @@
+##
+## Run this at Repl to create a service
+## that keeps the Discord bot alive for
+## an hour. Read the docs to run longer.
+##
 from flask import Flask
 from threading import Thread
 import random
