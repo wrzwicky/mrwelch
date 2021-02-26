@@ -1,7 +1,8 @@
+#!/usr/bin/env python3
 import logging
 logging.basicConfig(level=logging.ERROR)
 log = logging.getLogger('mrwelch')
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO) #DEBUG)
 # discord.py dumps stuff to DEBUG
 
 import os, random, re, sys, time, urllib
@@ -17,10 +18,11 @@ from discord.ext import commands
 ## mention @mrwelch for random quote
 ## or mention with nubmer for that exact quote
 ## or mention with string for random quote containing string
-## or mention with math expression for braining
+## or mention with Python expression for braining
 ##
 ## Create file ".env" with secret keys:
 ##   DISCORD_AUTHOR_ID
+##   DISCORD_BOT_ID
 ##   DISCORD_BOT_SECRET
 ##
 ## https://discordpy.readthedocs.io/en/latest/api.html
@@ -45,8 +47,13 @@ def wait_for_internet_connection():
         time.sleep(2)
 
 def rando() -> str:
-  n = random.randrange(len(mrwelch))
-  return "%d. %s" % (n, mrwelch[n])
+  if random.random() >= 0.90:
+    # Secret quote from Critical Role
+    q = "And now this news break from Critical Role:\n" + random.choice(critrole) + "\nThat is all."
+  else:
+    n = random.randrange(len(mrwelch))
+    q = "%d. %s" % (n, mrwelch[n])
+  return q
 
 def reparse(msg: str) -> List[str]:
   """parse message content, alternating strings and coded mentions"""
@@ -90,6 +97,12 @@ with open(p, "r") as f:
     num += 1
     mrwelch[num] = line
 
+p = os.path.join(sys.path[0], "critrole.txt")
+critrole = []
+with open(p,"r") as f:
+  for line in f:
+    critrole.append(line.strip())
+
 log.info(f"{len(mrwelch)} snarks loaded")
 
 # exceptions that prevent string search
@@ -126,7 +139,8 @@ funs.update(
 	range=range
 )
 vars = {
-	"mrwelch": mrwelch
+	"mrwelch": mrwelch,
+	"critrole": critrole
 }
 
 simple = simpleeval.EvalWithCompoundTypes(functions=funs, names=vars)
@@ -180,13 +194,17 @@ async def on_message(msg):
   elif bot.user in msg.mentions:
 	# or '' in msg.role_mentions:
 	# -- bots don't officially have roles, even though a role is shown in Discord
-    log.info(f"{msg.created_at} : {msg.author.name} : {msg.clean_content}")
+    log.info(f"{msg.created_at} : {msg.author.name} : {msg.content}")
 
     # purge <@code> mentions
     r = reparse(msg.content)
     m = ' '.join([s for s in r if not s.startswith("<@")])
 
     if m:
+      if m == "crro":
+        await msg.channel.send(random.choice(critrole))
+        return
+
       try:
         # lone integer? use as index
         i = int(m)
