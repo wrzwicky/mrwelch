@@ -10,7 +10,7 @@ import simpleeval
 from typing import List, Tuple
 from dotenv import load_dotenv
 
-import discord.utils
+import discord, discord.utils
 from discord.ext import commands
 
 ##
@@ -54,25 +54,6 @@ def rando() -> str:
     n = random.randrange(len(mrwelch))
     q = "%d. %s" % (n, mrwelch[n])
   return q
-
-def reparse(msg: str) -> List[str]:
-  """parse message content, alternating strings and coded mentions"""
-  # user mentions: <@-id-> or <@!-id->
-  # role mentions: <@&-id->
-  # chan mentions: <#-id->
-  mx = re.compile("<@!?(\d+)>")
-  ans = []
-  while True:
-    m = mx.search(msg)
-    if not m:
-      break
-    if m.start() > 0:
-      ans.append(msg[:m.start()].strip())
-    ans.append(m[0])
-    msg = msg[m.end():]
-  if msg:
-    ans.append(msg.strip())
-  return ans
 
 
 random.seed()
@@ -155,26 +136,58 @@ bot = commands.Bot(
 
 bot.author_id = os.environ.get("DISCORD_AUTHOR_ID")
 
+
+def reparse2(message: discord.Message) -> List:
+  """
+  Parse message content, alternating strings and User/Role/TextChannel objects.
+  Roles and channels are looked up in the server from whence came the message.
+  All strings are stripped; empty strings are dropped.
+  """
+  # user mentions: <@-id-> or <@!-id->
+  #  - <@ for user, <@! if user has nick
+  # role mentions: <@&-id->
+  # chan mentions: <#-id->
+  mx = re.compile("<(@|@!|@&|#)(\d+)>")
+  msg = message.content
+  ans = []
+  while True:
+    # find next mention
+    m = mx.search(msg)
+    if not m:
+      break
+    # append text (if not blank)
+    if m.start() > 0:
+      t = msg[:m.start()].strip()
+      if t:
+        ans.append(t)
+    # convert and append mention
+    all = m[0]
+    typ = m[1]
+    id  = int(m[2])
+    if typ == '@' or typ == '@!':
+      obj = bot.get_user(id)
+    elif typ == '@&':
+      obj = message.guild.get_role(id)
+    elif typ == '#':
+      obj = message.guild.get_channel(id)
+    else:
+      log.error(f"unrecognized mention type '{typ}' for id {id}")
+      obj = all
+    ans.append(obj)
+
+    # loop with remainder of string
+    msg = msg[m.end():]
+
+  t = msg.strip()
+  if t:
+    ans.append(t)
+  return ans
+
+
 @bot.event 
 async def on_ready():
   log.info("I'm in as "+str(bot.user))
   log.info(rando())
-
-@bot.command()
-async def r(ctx):
-  await ctx.send(rando())
-
-@bot.command()
-async def n(ctx, n:int):
-  await ctx.send("%d. %s" % (n, mrwelch[n]))
-
-@bot.command()
-async def s(ctx, s:str):
-  s = s.lower()
-  ix = [k for k in mrwelch if s in mrwelch[k].lower()]
-  if len(ix) > 0:
-    n = random.choice(ix)
-    await ctx.send("%d. %s" % (n, mrwelch[n]))
 
 
 @bot.event
@@ -184,21 +197,45 @@ async def on_guild_join(guild):
     if general and general.permissions_for(guild.me).send_messages:
         await general.send('Hello %s! I like to mock Mr. Welch. @mention me to get a random message; or @mention me with a number or some text for a specific message.' % (guild.name))
 
+
 @bot.event
-async def on_message(msg):
+async def on_message(msg: discord.Message):
   """take commands only from messages that @mention me"""
   #msg .channel:Union[abc.Messageable] .author:Member .mentions:List[Member] .created_at:datetime.datetime(UTC) .content:str
 
   if msg.author == bot.user:
     log.info("(my own response)")
-  elif bot.user in msg.mentions:
-	# or '' in msg.role_mentions:
-	# -- bots don't officially have roles, even though a role is shown in Discord
-    log.info(f"{msg.created_at} : {msg.author.name} : {msg.content}")
+  else:
+    # parse out <@id> mentions
+    #  -msg.mentions includes bot.user if someone replies to bot
+    objmsg = reparse2(msg)
+    m = ' '.join(s for s in objmsg if isinstance(s, str))
+    userMents = set(u for u in objmsg if isinstance(u, discord.User) or isinstance(u, discord.ClientUser))
+    roleMents = set(u for u in objmsg if isinstance(u, discord.Role))
 
-    # purge <@code> mentions
-    r = reparse(msg.content)
-    m = ' '.join([s for s in r if not s.startswith("<@")])
+    # find my role in the server sending the message
+    #  -On the site, bots clearly have roles, but I can't get any API to return the role.
+    #   botrole = msg.guild.get_member(bot.user.id).role -- no attribute 'role'
+    myroles = set()
+    for r in msg.guild.roles:
+      #print(f" - {r.name}: {r.members}")
+      if r.name == "@everyone":
+        continue
+      if bot.user in r.members:
+        myroles.add(r)
+    #print(f"myroles: {myroles}") ## success!
+
+
+    # a little tracing
+    if bot.user in msg.mentions and not bot.user in userMents:
+      log.info(f"({msg.author.name} replied to me)")
+
+    # bail if msg not for me
+    if not bot.user in userMents and not myroles & roleMents:
+      return
+
+    log.info(f"{msg.created_at} : {msg.author.name} -> {msg.guild.name} #{msg.channel.name}\n  {msg.content}")
+
 
     if m:
       if m == "crro":
@@ -217,7 +254,7 @@ async def on_message(msg):
       except ValueError:
         log.info(" -> not a number")
         try:
-          # math expression?
+          # math expression? evaluate
           ans = simple.eval(m)
           if isinstance(ans,int):
             await msg.channel.send("Maybe like " + str(ans))
@@ -229,7 +266,7 @@ async def on_message(msg):
           log.info(" -> refused eval: "+repr(e))
           await msg.channel.send("Nah.")
         except:
-          # literal search
+          # else text search
           t,e,tb = sys.exc_info()
           log.info(" -> not math "+repr(e))
           m = m.lower()
@@ -241,19 +278,8 @@ async def on_message(msg):
             await msg.channel.send("Mr. Welch has not encountered such a thing.")
     else:
       await msg.channel.send(rando())
-  else:
-    # other discussion; ignore
-    #log.info(f"{msg.created_at} : {msg.author.name} : {msg.content}")
-    pass
 
-
-extensions = [
-#  'cogs.cog_example'  # Same name as it would be if you were importing it
-]
 
 if __name__ == '__main__':  # Ensures this is the file being ran
-  for extension in extensions:
-    bot.load_extension(extension)  # Loads every extension.
-
   token = os.environ.get("DISCORD_BOT_SECRET")
   bot.run(token)  # Starts the bot
