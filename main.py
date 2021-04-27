@@ -55,6 +55,16 @@ def rando() -> str:
     q = "%d. %s" % (n, mrwelch[n])
   return q
 
+def loadMrwelch(fil): #-> {int -> str}
+  mrwelch = {}
+  with open(fil, "r") as f:
+    rx = re.compile("^(\d+)\.\s*(.*)$")
+    for line in f:
+      line = line.strip()
+      if not line.startswith("#"):
+        (num,msg) = rx.match(line).groups()
+        mrwelch[int(num)] = msg
+  return mrwelch
 
 random.seed()
 if not os.environ.get("DISCORD_AUTHOR_ID"):
@@ -63,13 +73,8 @@ if not os.environ.get("DISCORD_AUTHOR_ID"):
     print("Please create .env file with DISCORD_AUTHOR_ID and DISCORD_BOT_SECRET.")
     sys.exit(5)
 
-mrwelch = {}
 p = os.path.join(sys.path[0], "mrwelch.txt")
-with open(p, "r") as f:
-  rx = re.compile("^(\d+)\.\s*(.*)$")
-  for line in f:
-    (num,msg) = rx.match(line).groups()
-    mrwelch[int(num)] = msg
+mrwelch = loadMrwelch(p)
 
 p = os.path.join(sys.path[0], "shane.txt")
 with open(p, "r") as f:
