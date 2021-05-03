@@ -13,6 +13,17 @@ from user_inventory import *
 log = logging.getLogger('mrwelch')
 
 
+def loadMrwelch(fil): #-> {int -> str}
+  mrwelch = {}
+  with open(fil, "r") as f:
+    rx = re.compile("^(\d+)\.\s*(.*)$")
+    for line in f:
+      line = line.strip()
+      if not line.startswith("#"):
+        (num,msg) = rx.match(line).groups()
+        mrwelch[int(num)] = msg
+  return mrwelch
+
 def reparse2(bot: commands.Bot, message: discord.Message) -> List:
   """
   Parse message content, alternating strings and User/Role/TextChannel objects.
@@ -79,13 +90,8 @@ class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
   def __init__(self, bot):
     self.bot = bot
 
-    mrwelch = {}
     p = os.path.join(sys.path[0], "mrwelch.txt")
-    with open(p, "r") as f:
-      rx = re.compile("^(\d+)\.\s*(.*)$")
-      for line in f:
-        (num,msg) = rx.match(line).groups()
-        mrwelch[int(num)] = msg
+    mrwelch = loadMrwelch(p)
 
     p = os.path.join(sys.path[0], "shane.txt")
     with open(p, "r") as f:
