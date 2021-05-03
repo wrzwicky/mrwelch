@@ -47,6 +47,16 @@ def wait_for_internet_connection():
         time.sleep(2)
 
 
+def loadMrwelch(fil): #-> {int -> str}
+  mrwelch = {}
+  with open(fil, "r") as f:
+    rx = re.compile("^(\d+)\.\s*(.*)$")
+    for line in f:
+      line = line.strip()
+      if not line.startswith("#"):
+        (num,msg) = rx.match(line).groups()
+        mrwelch[int(num)] = msg
+  return mrwelch
 
 random.seed()
 if not os.environ.get("DISCORD_AUTHOR_ID"):
