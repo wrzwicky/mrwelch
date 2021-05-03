@@ -103,6 +103,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
     if not user:
       user = ctx.author
       intro = "You have"
+# private DM with full inventory
     elif user == self.bot.user:
       intro = "I have"
     else:
