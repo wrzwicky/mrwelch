@@ -1,19 +1,29 @@
+import inflect
 
 class UserInventory:
+  #classvariable
+  inflector = inflect.engine()
 
   def __init__(self):
     self.pack = set()
     self.pock = set()
 
+  def isEmpty(self):
+    return not (self.pack or self.pock)
+
   def describeMe(self):
     """Show full private inventory."""
-    s = self.describe() + f" ({joinAnd(self.pock)})"
+    s = self.describe() + f" ({joinAnd([self.inflector.a(i) for i in self.pock])})"
 
   def describe(self):
     """Show publicly visible inventory."""
     s = sorted(self.pack)
+    s = [self.inflector.a(i) for i in s]
     if self.pock:
-      s.append("something in pockets")
+      if 'one ring' in (name.casefold() for name in self.pock):
+        s.append("something in pocketses")
+      else:
+        s.append("something in pockets")
     return joinAnd(s)
   
   def add(self, item: str):
