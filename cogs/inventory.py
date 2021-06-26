@@ -20,6 +20,8 @@ def single(p,noun):
 
 
 class InventoryCog(commands.Cog, name="Inventory Commands"):
+  """Weird little per-user inventory keeper"""
+  
   allInventory = {} #{member -> []}
 
 
