@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import logging
-import os, random, re, sys, time, urllib
+import math, os, random, re, sys, time, urllib
 from typing import List, Tuple
 from dotenv import load_dotenv
 
@@ -116,7 +116,7 @@ class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
     def shuffled(thing):
       if isinstance(thing,str):
         return "".join(random.sample(thing,len(thing)))
-      elif isinstance(thing,list):
+      elif isinstance(thing,(list,tuple)):
         return random.sample(thing,len(thing))
       else:
         raise simpleeval.FeatureNotAvailable("shuffle "+type(thing))
@@ -124,15 +124,19 @@ class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
     # DEFAULT_FUNCTIONS provides randint(x) rand() int(x) float(x) str(x)
     simpleeval.MAX_POWER = 9999
     funs = simpleeval.DEFAULT_FUNCTIONS.copy()
-    funs.update(
-      shuffle=shuffled,
-      sample=random.sample,
-      choice=random.choice,
-      choices=random.choices,
-      range=range
-    )
+    funs.update({
+        'abs' : abs, 'all' : all, 'any' : any, 'ascii' : ascii, 'chr' : chr, 'complex' : complex, 'copyright' : copyright, 'credits' : credits, 'divmod' : divmod, 'filter' : filter, 'format' : format, 'hash' : hash, 'hex' : hex, 'len' : len, 'license' : license, 'max' : max, 'min' : min, 'oct' : oct, 'ord' : ord, 'pow' : pow, 'range' : range, 'reversed' : reversed, 'round' : round, 'sorted' : sorted, 'sum' : sum, 'zip' : zip,
+
+        'sin' : math.sin,
+        'cos' : math.cos,
+
+        'shuffle' : shuffled,
+        'sample'  : random.sample,
+        'choice'  : random.choice,
+        'choices' : random.choices,
+    })
     vars = {
-      "mrwelch": self.mrwelch,
+      "mrwelch": self.mrwelch.values(),
       "critrole": self.critrole
     }
 
@@ -216,12 +220,12 @@ class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
         try:
           # math expression? evaluate
           ans = self.eval.eval(m)
-          if isinstance(ans,int):
+          if isinstance(ans, (int,float)):
             await msg.channel.send("Maybe like " + str(ans))
-          elif isinstance(ans,float):
-            await msg.channel.send("Maybe like " + str(ans))
-          else:
+          elif isinstance(ans, (list, dict, tuple, complex)):
             await msg.channel.send(str(ans))
+          else:
+            raise TypeError("Not a type I print: "+str(ans))
         except self.REFUSERS as e:
           log.info(" -> refused eval: "+repr(e))
           await msg.channel.send("Nah.")
