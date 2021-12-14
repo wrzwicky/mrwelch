@@ -170,6 +170,8 @@ class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
       log.info("(my own response)")
       return
 
+    # I believe the problem is this: message.mentions is intended to contain @mentions, but in reality it also includes the bot if some responds to it. So I have to re-parse the raw text message, filter out the actual mentions, and make decisions from that.
+
     # parse out <@id> mentions
     #  -msg.mentions includes bot.user if someone replies to bot
     objmsg = reparse2(self.bot, msg)

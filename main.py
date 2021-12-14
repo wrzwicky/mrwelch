@@ -91,9 +91,16 @@ async def on_guild_join(guild):
 
 
 if __name__ == '__main__':
+  # Do this when running on replit.com
+  if os.getenv("REPL_OWNER"):
+    import keep_alive
+    keep_alive.keep_alive()
+
   bot.load_extension('cogs.inventory')
   bot.load_extension('cogs.welcher')
   bot.load_extension('cogs.define')
+  bot.load_extension('cogs.dice')
+  bot.load_extension('cogs.music')
 
   token = os.environ.get("DISCORD_BOT_SECRET")
   bot.run(token)  # Starts the bot
