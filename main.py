@@ -96,11 +96,16 @@ if __name__ == '__main__':
     import keep_alive
     keep_alive.keep_alive()
 
-  bot.load_extension('cogs.inventory')
-  bot.load_extension('cogs.welcher')
-  bot.load_extension('cogs.define')
-  bot.load_extension('cogs.dice')
-  bot.load_extension('cogs.music')
+  mods = [
+    'cogs.inventory',
+    'cogs.welcher',
+    'cogs.define',
+    'cogs.dice',
+    'cogs.music',
+    'cogs.helphelp',
+  ]
+  for m in mods:
+    bot.load_extension(m)
 
   token = os.environ.get("DISCORD_BOT_SECRET")
   bot.run(token)  # Starts the bot

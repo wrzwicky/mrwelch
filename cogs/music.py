@@ -21,11 +21,10 @@ import logging
 log = logging.getLogger('mrwelch')
 
 import datetime
-import json
+#import json
 import discord
 from discord.ext import commands
 import youtube_dl
-import validators
 
 # replit packages -- add PyNaCl
 # or "poetry add PyNaCl"
@@ -38,7 +37,9 @@ def parse_date(s):
   return datetime.datetime(y,m,d)
 
 
-class Music(commands.Cog):
+class MusicCog(commands.Cog):
+  """Play music from YouTube into user's voice channel."""
+
   def __init__(self, bot):
     self.bot = bot
 
@@ -55,6 +56,7 @@ class Music(commands.Cog):
 
   @commands.command()
   async def join(self, ctx):
+    """have mrwelch join user's voice channel"""
     if ctx.author.voice is None:
       await ctx.send("you are not in a voice channel")
     voice_channel=ctx.author.voice.channel
@@ -66,12 +68,14 @@ class Music(commands.Cog):
   
   @commands.command()
   async def leave(self, ctx):
+    """have mrwelch disconnect from user's voice channel"""
     if ctx.voice_client:
       await ctx.voice_client.disconnect()
   
 
   @commands.command()
   async def play(self, ctx, *args):
+    """find suitable video on YouTube, and play the audio in user's voice channel"""
     # get arg, note progress
     song = " ".join(args)
     log.info(f"Musiccing {song}")
@@ -146,10 +150,12 @@ class Music(commands.Cog):
   
   @commands.command()
   async def pause(self, ctx):
+    """suspend playing of audio file, if any"""
     await ctx.voice_client.pause()
 
   @commands.command()
   async def resume(self, ctx):
+    """continue playing suspended audio file, if any"""
     await ctx.voice_client.resume()
 
 
@@ -158,4 +164,4 @@ class Music(commands.Cog):
 
 
 def setup(bot):
-  bot.add_cog(Music(bot))
+  bot.add_cog(MusicCog(bot))

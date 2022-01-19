@@ -11,13 +11,16 @@ from user_inventory import *
 log = logging.getLogger('mrwelch')
 
 
-class Dictionary(commands.Cog, name="Gratuitous English Word Definer Bot"):
-    """Post definitions from dict.org"""
+class DictionaryCog(commands.Cog):
+    """Gratuitous English Word Definer Bot"""
+
     def __init__(self, bot):
         self.bot = bot
 
     @commands.command()
     async def define(self, ctx, word: str):
+        """explain given word"""
+
         wb = wordbook.WordBook(host='dict.org', database='wn')
         await wb.connect()
         lines = await wb.define(word)
@@ -40,4 +43,4 @@ class Dictionary(commands.Cog, name="Gratuitous English Word Definer Bot"):
 
 
 def setup(bot):
-    bot.add_cog(Dictionary(bot))
+    bot.add_cog(DictionaryCog(bot))

@@ -3,7 +3,9 @@ import logging, random
 import discord, discord.utils
 from discord.ext import commands
 
-class DiceCog(commands.Cog, name="Totally random dice roller"):
+class DiceCog(commands.Cog):
+    """roll things over"""
+
     def __init__(self, bot):
         self.bot = bot
 
@@ -22,6 +24,7 @@ class DiceCog(commands.Cog, name="Totally random dice roller"):
 
     @commands.command()
     async def roll(self, ctx, *words):
+      """roll things over"""
       if not words:
         await ctx.message.add_reaction("\N{SHRUG}")
       else:

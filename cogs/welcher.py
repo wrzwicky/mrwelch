@@ -72,8 +72,10 @@ def reparse2(bot: commands.Bot, message: discord.Message) -> List:
 
 
 
-class WelchCog(commands.Cog, name="Things Mr. Welch is not allowed to do"):
-# exceptions that prevent string search
+class WelchCog(commands.Cog, name="mrwelch"):
+  """Things Mr. Welch is not allowed to do"""
+
+  # exceptions that prevent string search
   REFUSERS = (
     discord.errors.HTTPException,
   #  simpleeval.AttributeDoesNotExist,

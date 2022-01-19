@@ -19,7 +19,7 @@ def single(p,noun):
     return noun
 
 
-class InventoryCog(commands.Cog, name="Inventory Commands"):
+class InventoryCog(commands.Cog):
   """Weird little per-user inventory keeper"""
   
   allInventory = {} #{member -> []}
@@ -52,7 +52,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command()
   async def give(self, ctx, user: discord.Member, item: str):
-    """Gives item"""
+    """give <item> to <user>"""
     if user and item:
       item = single(self.inflector, item)
       log.info(f"Giving {item} to {user}")
@@ -79,7 +79,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command()
   async def take(self, ctx, item: str):
-    """find all people with item, pick one at random, take it from them"""
+    """find all people with <item>, pick one at random, take it from them"""
     if item:
       item = single(self.inflector, item)
       victims = [u for u in self.allInventory if self.allInventory[u].see(item)]
@@ -94,6 +94,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command()
   async def drop(self, ctx, item: str):
+    """delete the <item> if you have it"""
     if item:
       item = single(self.inflector, item)
       user = ctx.author
@@ -105,6 +106,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command()
   async def use(self, ctx, item: str):
+    """use (and delete) the <item>"""
     if item:
       item = single(self.inflector, item)
       user = ctx.author
@@ -116,6 +118,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command(aliases=['i'])
   async def inventory(self, ctx, user: discord.Member = None):
+    """list all items you or <user> posess(es)"""
     if not user:
       user = ctx.author
       intro = "You have"
@@ -133,6 +136,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
 
   @commands.command()
   async def pocket(self, ctx, item: str):
+    """hide <item> from other users"""
     resp = None
     if item:
       inv = self.allInventory.get(ctx.author)
@@ -147,7 +151,7 @@ class InventoryCog(commands.Cog, name="Inventory Commands"):
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
       if resp: await ctx.channel.send(resp)
 
-  @commands.command()
+  @commands.command(hidden=True)
   async def reboot(self, ctx):
     await ctx.channel.send("Who do you think you are?!")
 
