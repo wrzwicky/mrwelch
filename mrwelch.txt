@@ -1,8 +1,8 @@
 # https://theglen.livejournal.com/
 # https://theglen.livejournal.com/16735.html
+# https://theglen.livejournal.com/460649.html
 # -follow links to get to 2525
-# 2501-2525 https://theglen.livejournal.com/460649.html
-# 2526-2545 https://theglen.livejournal.com/461413.html
+# 2501-2550 https://theglen.livejournal.com/460649.html
 1. Cannot base characters off the Who's drummer Keith Moon.
 2. A one man band is not an appropriate bard instrument.
 3. There is no Gnomish god of heavy artillery.
@@ -2548,3 +2548,8 @@
 2543. There are numerous acceptable ways to kill a large camp of bugbears. Dysentery is not one of them.
 2544. The answer is never high quality 100% pure Gnomish nose candy.
 2545. There are only so many flavors of owlbear jerky.
+2546. Even if the elf is fully rested after 4 hours into the long rest, he doesn't have to spend the other 4 hours doing his hair.
+2547. Elves don't have to keep track of rouge like archers have to keep track of arrows.
+2548. The halfling word for bad touch is not elf.
+2549. It is still going to take a minimum of three weeks for my starting Paladin to reach 20th level even if we are playing in Ravenloft.
+2550. Apparently the Broken and Mourn lands aren't accepting refugees from the Forgotten Realms either.
