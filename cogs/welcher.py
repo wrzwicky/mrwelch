@@ -8,10 +8,10 @@ import simpleeval
 import discord, discord.utils
 from discord.ext import commands
 from user_inventory import *
-
+from magic8 import *
 
 log = logging.getLogger('mrwelch')
-
+idunno = Magic8Ball()
 
 def loadMrwelch(fil): #-> {int -> str}
   mrwelch = {}
@@ -243,7 +243,8 @@ class WelchCog(commands.Cog, name="mrwelch"):
             i = random.choice(ix)
             await msg.channel.send("%d. %s" % (i, self.mrwelch[i]))
           else:
-            await msg.channel.send("Mr. Welch has not encountered such a thing.")
+            #await msg.channel.send("Mr. Welch has not encountered such a thing.")
+            await msg.channel.send(idunno.rando())
     else:
       await msg.channel.send(self.rando())
 

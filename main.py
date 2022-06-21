@@ -13,6 +13,7 @@ from dotenv import load_dotenv
 import discord, discord.utils
 from discord.ext import commands
 
+
 ##
 ## "Things Mr. Welch is not allowed to do" bot for Discord
 ## mention @mrwelch for random quote
