@@ -103,6 +103,7 @@ if __name__ == '__main__':
     'cogs.define',
     'cogs.dice',
     'cogs.music',
+    'cogs.story',
     'cogs.helphelp',
   ]
   for m in mods:

@@ -1,0 +1,319 @@
+start:
+  <subject> walks into a bar. The bartender says, "Sorry we don't <verb1> <obj> here."
+  <^subject>, <subject>, and <subject> walk into a bar.\nThe bartender says, "<^words>"
+  Q. What did <person> say when <pronoun> <relative> <verbed>?\nA. <^words>
+  Q. What <noun> will <thing> never <verb1>?\nA. <^obj>.
+  Q. What did one <noun> say to the other while <verbing> <obj>?\nA. <^words>
+  Q. What did <person> say to <thing>?\nA. <^words>
+  Q. Did you hear about <person> who's <way>?\nA. They're still <way>.
+  Q. Which <noun> is the most <adj>?\nA. <^thing>.
+  Q. What do you call <cross>?\nA. <^thing>.
+  Q. What is the difference between <thing> and <thing>?\nA. <^difference>!
+	Q. What is <adj>, then <adj>, then <desc>?\nA. <^cross>.
+	Q. Why did <thing> <verb1> <obj>?\nA. To <verb2> <place>!
+	Q. What do you get when you cross <thing> with <obj>?\nA. <^cross>.
+	Q. When does <person> <verb1> <obj>?\nA. When he is <way>!
+	Q. What is the best time to <verb1> <obj>?\nA. When <thing> is <way>!
+	Q. What did <thing> say to <thing>?\nA. "<^words>"
+	Q. Who always says, "<^words>"\nA. <^person>.
+
+subject:
+  <person>
+  <thing>
+  <art> <pet>
+
+words:
+	I heard about <thing>!
+	always spend your time <way>.
+	never <verb2> <place>!
+	did you hear the one about <obj>?
+	I can <verb1> <thing> with both hands tied behind my back!
+	never trust <thing>!
+	you're standing on my <noun>!
+	<person> has been watching you!
+	want to hear a joke about <thing>?
+  you look <way>.
+  does this <verb1> <adj> to you?
+  <pronoun> <noun> is <way>!
+
+way:
+	<adj>
+	near <person>
+	near <place>
+	parachuting over <place>
+	riding a <vehicle> and <way>
+	not <way>
+	preparing to <verb1> <thing>
+	hoping to <verb2> <place>
+	<desc>
+
+difference:
+	it depends on where you <verb1> them
+	<number> bucks
+	one is <desc> and the other is not
+	one is <desc> and the other is <adj>
+	only <person> knows for sure
+
+cross:
+	a <region> covered with <color> <noun>s
+	a glossy photograph of <thing>
+	a newspaper describing <place>
+	<person>
+	<number> <desc> <noun>s, that's what
+	a <noun> from the <region>
+	a <desc> piece of <thing>
+	not <thing>, that's for sure
+
+thing:
+	<art> <noun>
+	<person>
+	your grandmother
+	<thing>'s <noun>
+	<art> <color> <noun>
+	<art> <desc> <noun>
+	<person>'s <noun>
+	your pet <pet>'s <adj> <noun>
+	<person>'s pet <pet>
+	your <relative>'s <adj> <noun>
+	Fred's <noun>
+  a pan-duh
+
+obj:
+	the North Pole
+	"Slim Whitman's Greatest Hits"
+	the entire population of Red China
+	the bottom of your shoe
+	your <desc> pet <pet>
+	dice
+	Crest toothpaste
+	a cubic light-year of empty space
+	everything in the universe
+	the endangered species list
+	<flavor> yogurt
+	Lawrence Welk
+	the Louvre
+	the road
+	an iceberg
+	McDonald's
+	your grandfather
+	Venus
+	the cute little kids
+	<person>'s <noun>
+	Communism
+	<art> <color> <noun>
+
+art:
+	a
+	the
+
+pronoun:
+  his
+  her
+  their
+
+person:
+	God
+	King Kong
+	Pac-man
+	Death
+	Father Time
+	Spiderman
+	Lester Lightbulb
+	Reggie Jackson
+	Alfalfa
+	Underdog
+	Dr. Seuss
+	Rumplestiltskin
+	Albert Einstein
+	Mt. Fuji
+	Buddha
+	Dr. Smith
+	Mr. Science
+	Snidely Whiplash
+	Lenin's body
+	Albert Einstein
+	<relative> Heinrich
+	<relative> Yolanda
+
+noun:
+	chess set
+	chili dog
+	hand grenade
+	jellyfish
+	x-ray machine
+	birth certificate
+	coat rack
+	baby
+	missionary position
+	migraine
+	tuba instructor
+	killer whale
+	Fruit Loops
+	deluxe sofa bed
+	fertilizer
+  <pet>
+
+relative:
+	uncle
+	cousin
+	grandfather
+	great <relative>
+	grandmother
+
+pet:
+	dog
+	kitten
+	pit viper
+	ball of wax
+	tongue
+	box of hair
+	rock
+	anteater
+	venus fly trap
+	spoonbill
+	gila monster
+	slug
+
+flavor:
+	chocolate
+	lemony fresh
+	strawberry
+	marshmallow
+	unscented
+	floral
+	pine-scented
+	frosted
+	sugary
+
+adj:
+	promiscuous
+	furry
+	helpless
+	confused
+	lost
+	gold-plated
+	devious
+	fucked-up
+	flat
+	yodeling
+	dreaded
+	lovelorn
+	human
+	ghoulish
+	respectable
+
+number:
+	fifteen thousand
+	a million
+	six or seven
+	a lot of
+	several
+	a few
+	a countable infinity of
+
+verb1:
+	destroy
+	bribe
+	hop over
+	make fun of
+	molest
+	pretend to like
+	respect
+	drill through
+	congeal
+	taste
+	boil
+	abuse
+
+verb2:
+	get to
+	fly over
+	ride a <vehicle> thru the <desc> <region>s of <dir> <state> to
+	party all over
+	get a close look at
+	roll a steam roller over
+	stare and point at
+	inflict deep knife wounds all over
+	ride a <vehicle> to
+
+verbing:
+	destroying
+	bribing
+	hopping over
+	making fun of
+	molesting
+	drilling through
+	boiling
+
+verbed:
+  died
+  congealed
+  boiled
+
+desc:
+	<adj>
+	<color>
+  <flavor>
+	very <adj>
+	very, very <adj>
+	relatively <adj>
+	<adj> and <adj>
+	<color> and <color>
+
+region:
+	swamp
+	desert
+	supermarket
+	parking lot
+	sewer
+	freezer section
+	minefield
+	field
+	tar pit
+
+vehicle:
+	<color> tricycle
+	<color> camel
+	<color> hovercraft
+	<adj> skateboard
+	<adj> turtle
+
+dir:
+	north
+	south
+	east
+	west
+	northwest
+
+state:
+	Jersey
+	Iowa
+	Alaska
+	Kansas
+	Bulgaria
+	Saskatchewan
+
+place:
+	the other side
+	the outer limits
+	the <desc> <region>s of <dir> <state>
+	the other side of <place>
+	the Twilight zone
+	Neptune
+	Mars
+	the kitchen
+	<dir> <state>
+	<person>'s <region>
+	five kilometers east of <place>
+
+color:
+	blue
+	green
+	hot pink
+	bland
+	purple
+	red and black
+	kaleidoscopic
+	plaid
+	chartreuse
+	reddish
