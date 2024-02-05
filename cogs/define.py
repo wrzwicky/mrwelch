@@ -27,8 +27,11 @@ class DictionaryCog(commands.Cog):
         desc = "\n".join(lines[2:])
 
         regex = r"\{([^}]+)\}"
-        subst = '[\\1](javascript%3Aalert(%22This%20is%20a%20warning%20message!%22)%3B)'
+        subst = '*\\1*'
         desc = re.sub(regex, subst, desc, 0, re.MULTILINE)
+
+        if len(desc) > 1000:
+            desc = desc[:1000] + "^C\n"
 
         embedVar = discord.Embed(title=word,
                                  description=desc)  #, color=0x00ff00)

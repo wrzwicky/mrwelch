@@ -4,7 +4,7 @@ import discord, discord.utils
 from discord.ext import commands
 
 class DiceCog(commands.Cog):
-    """roll things over"""
+    """Roll things."""
 
     def __init__(self, bot):
         self.bot = bot

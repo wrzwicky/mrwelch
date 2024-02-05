@@ -12,6 +12,8 @@ This is a bot that serves silly quotes to Discord.
 
 Don't forget to install required packages:
 
++ `python3 -m venv env`
++ `source env/bin/activate`
 + `pip3 install -r requirements.txt`
 
 If you want to run this, you need to create a file named `.env` with your discord keys. *Do not check this file into version control.*

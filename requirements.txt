@@ -1,6 +1,7 @@
-simpleeval
-discord.py
-python-dotenv
-inflect
-wordbook
+discord.py==1.6.0
+inflect==7.0.0
+python-dotenv==1.0.1
+simpleeval==0.9.13
+wordbook==1.0.0
+yt-dlp==2023.7.6
 

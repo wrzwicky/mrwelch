@@ -4,5 +4,6 @@
 __pycache__/
 *.py[cod]
 *$py.class
+env/
 
 _query_info.xml
