@@ -91,7 +91,7 @@ if __name__ == '__main__':
     'cogs.welcher',
     'cogs.define',
     'cogs.dice',
-    'cogs.music',
+#    'cogs.music',  -- not working, not gonna debug right now.
     'cogs.story',
     'cogs.helphelp',
   ]

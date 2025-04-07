@@ -1,6 +1,13 @@
 # Music bot using youtube_dl
 # basic code from TCS student and coach
 
+# BUG Cog doesn't work! 
+#  - my rpi cannot connect to voice channel
+#  - "ERROR:discord.player:Probe 'native' using 'ffmpeg' failed, trying fallback" even when ffmpeg installed
+#  - "site-packages/discord/player.py", line 466, in _probe_codec_native
+#    IndexError: list index out of range
+#    Output file #0 does not contain any stream
+# TODO if you join voice channel then quit, bot uses last voice channel
 # TODO add reactions to embed to allow users to control song
 # TODO add playlist support
 
@@ -25,11 +32,7 @@ import datetime
 #import json
 import discord
 from discord.ext import commands
-#import youtube_dl -- slightly broken now
 from yt_dlp import YoutubeDL
-
-# replit packages -- add PyNaCl
-# or "poetry add PyNaCl"
 
 
 def parse_date(s):
@@ -45,6 +48,7 @@ class MusicCog(commands.Cog):
   def __init__(self, bot):
     self.bot = bot
 
+    # https://github.com/yt-dlp/yt-dlp/blob/master/yt_dlp/YoutubeDL.py
     self.YDL_OPTIONS = {
         'format': "bestaudio[ext=m4a]/bestaudio",
         'noplaylist': True,
@@ -93,7 +97,7 @@ class MusicCog(commands.Cog):
     log.info("-call join()")
     if not ctx.voice_client:
       await self.join(ctx)
-      if not ctx.voice_client:
+      if not ctx.voice_client or not ctx.voice_client.is_connected():
         await ctx.message.remove_reaction("🤔", self.bot.user)
         await ctx.message.add_reaction("⛔")
         await ctx.send("unable to join voice channel")
@@ -132,10 +136,15 @@ class MusicCog(commands.Cog):
                                                       **self.FFMPEG_OPTIONS)
 
     vc = ctx.voice_client
-    vc.play(source)
-    await ctx.message.remove_reaction("🤔", self.bot.user)
-    await ctx.message.add_reaction("🔊")
-
+    try:
+      vc.play(source)
+      await ctx.message.add_reaction("🔊")
+    except Exception:
+      logging.info('playback failed', exc_info=True)
+      await ctx.message.add_reaction("⛔")
+    finally:
+      await ctx.message.remove_reaction("🤔", self.bot.user)
+      
     # announce the song
     tile = discord.Embed(title=entry['title'])
 

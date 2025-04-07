@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+"discord.py" = "==1.7.3"
+inflect = "*"
+python-dotenv = "*"
+simpleeval = "*"
+wordbook = "*"
+yt-dlp = "*"
+pynacl = "*"
+ffmpeg = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.11"
