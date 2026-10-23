@@ -1,9 +1,13 @@
 .*
 !.gitignore
+!.replit
+!.agents/
 
 __pycache__/
 *.py[cod]
 *$py.class
 env/
+.pythonlibs/
+.venv/
 
 _query_info.xml

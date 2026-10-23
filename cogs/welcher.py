@@ -251,5 +251,5 @@ class WelchCog(commands.Cog, name="mrwelch"):
       await msg.channel.send(self.rando())
 
 
-def setup(bot):
-	bot.add_cog(WelchCog(bot))
+async def setup(bot):
+  await bot.add_cog(WelchCog(bot))

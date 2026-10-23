@@ -1,0 +1,1 @@
+- [Python package installation](python-package-installation.md) — Replit's installer may normalize requested pins; check the generated dependency constraints.

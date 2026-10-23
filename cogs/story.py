@@ -18,5 +18,5 @@ class StoryCog(commands.Cog):
     joke = "This should be funny to humans:\n" + self.story.tell()
     await ctx.channel.send(joke)
 
-def setup(bot):
-  bot.add_cog(StoryCog(bot))
+async def setup(bot):
+  await bot.add_cog(StoryCog(bot))

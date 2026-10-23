@@ -12,7 +12,7 @@ app = Flask('')
 
 @app.route('/')
 def home():
-	return 'Still alive!'
+  return 'Still alive!'
 
 def run():
   app.run(

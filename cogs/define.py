@@ -45,5 +45,5 @@ class DictionaryCog(commands.Cog):
 #desc supports [named links](https://discordapp.com)
 
 
-def setup(bot):
-    bot.add_cog(DictionaryCog(bot))
+async def setup(bot):
+    await bot.add_cog(DictionaryCog(bot))

@@ -37,5 +37,5 @@ class DiceCog(commands.Cog):
       except:
         return c
 
-def setup(bot):
-	bot.add_cog(DiceCog(bot))
+async def setup(bot):
+  await bot.add_cog(DiceCog(bot))

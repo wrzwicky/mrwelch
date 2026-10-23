@@ -19,6 +19,10 @@ This is a bot that serves silly quotes to Discord, plus has some other features 
 
 ## Install required packages
 
+For the current Replit setup, see [replit.md](replit.md). Replit uses Python 3.11
+with dependencies tracked in `pyproject.toml` and `uv.lock`. The Pipenv
+instructions below describe the original setup; its imported lockfile is legacy.
+
 Install *pipenv* dependency manager, then:
 
 ```

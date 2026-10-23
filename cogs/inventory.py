@@ -157,8 +157,8 @@ class InventoryCog(commands.Cog):
 
 
 
-def setup(bot):
-	bot.add_cog(InventoryCog(bot))
+async def setup(bot):
+  await bot.add_cog(InventoryCog(bot))
 
 
 
