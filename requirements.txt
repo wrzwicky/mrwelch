@@ -1,6 +1,0 @@
-simpleeval
-discord.py
-python-dotenv
-inflect
-wordbook
-

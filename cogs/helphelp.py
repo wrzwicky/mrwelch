@@ -3,6 +3,7 @@
 # https://gist.github.com/nonchris/1c7060a14a9d94e7929aa2ef14c41bc2
 
 import discord
+import pprint
 from discord.ext import commands
 from discord.errors import Forbidden
 
@@ -29,11 +30,11 @@ async def send_embed(ctx, embed):
 def spell_cogs(bot):
   words = {}
   for cog in bot.cogs:
-    words[cog.lower()] = bot.cogs[cog].__doc__
+    words["**"+cog+"**"] = bot.cogs[cog].__doc__
 
     for command in bot.get_cog(cog).get_commands():
       if not command.hidden:
-        words[command.name.lower()] = command.help
+        words["- ^**"+command.name+"**"] = command.help
 
   return words
 
@@ -57,14 +58,15 @@ class HelpCog(commands.Cog):
     async def help(self, ctx, *input):
       """print some help"""
 
-      words = spell_cogs(self.bot)
+      helps = spell_cogs(self.bot)
+      helptext = "\n".join( [f"{k}: {v}" for k,v in helps.items()] )
 
       if not input:
         #await ctx.message.add_reaction("\N{SHRUG}")
         emb = discord.Embed(
           title='Help',
           color=discord.Color.blue(),
-          description = " ".join(sorted(words))
+          description = helptext
         )
 
         # for w in words:

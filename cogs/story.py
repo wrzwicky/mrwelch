@@ -6,7 +6,7 @@ from discord.ext import commands
 from story import *
 
 class StoryCog(commands.Cog):
-  """tell a joke"""
+  """Tell an algorithmic story."""
   def __init__(self, bot):
     self.bot = bot
     self.story = Story()

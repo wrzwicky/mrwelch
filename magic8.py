@@ -1,6 +1,18 @@
 import random
 class Magic8Ball:
-  responses = [
+  responses_sarcastic = [
+    "You wish.",
+    "As if!",
+    "You call that a question?",
+    "Good luck with that.",
+    "You've got to be kidding.",
+    "Ask me if I care.",
+    "🤷 try chatgpt",
+    "You don't want to know, trust me.",
+    "42.",
+    "Sorry, this feature is only available to Pro subscribers.",
+  ]
+  responses_normal = [
     "It is certain.",
     "Without a doubt.",
     "You may rely on it.",
@@ -23,4 +35,4 @@ class Magic8Ball:
     "My reply is no.",
   ]
   def rando(self):
-    return random.choice(self.responses)
+    return random.choice(self.responses_sarcastic)

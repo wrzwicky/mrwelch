@@ -70,6 +70,9 @@ def reparse2(bot: commands.Bot, message: discord.Message) -> List:
     ans.append(t)
   return ans
 
+# https://stackoverflow.com/a/3411435
+def round_to_1(x):
+  return round(x, -int(math.floor(math.log10(math.fabs(x)))))
 
 
 class WelchCog(commands.Cog, name="mrwelch"):
@@ -213,18 +216,17 @@ class WelchCog(commands.Cog, name="mrwelch"):
       try:
         # lone integer? use as index
         i = int(m)
-        if i == 1984:
-          await msg.channel.send("Sorry, this one is not about 1984.")
-        elif i in self.mrwelch:
+        if i in self.mrwelch:
           await msg.channel.send("%d. %s" % (i, self.mrwelch[i]))
         else:
           await msg.channel.send("Mr. Welch is not so experienced just yet.")
       except ValueError:
-        log.info(" -> not a number")
+        log.info(" -> not a number, trying math")
         try:
           # math expression? evaluate
           ans = self.eval.eval(m)
           if isinstance(ans, (int,float)):
+            ans = round_to_1(ans)
             await msg.channel.send("Maybe like " + str(ans))
           elif isinstance(ans, (list, dict, tuple, complex)):
             await msg.channel.send(str(ans))
