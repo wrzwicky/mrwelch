@@ -81,11 +81,7 @@ async def on_guild_join(guild):
 
 
 if __name__ == '__main__':
-  # Do this when running on replit.com
-  # -> use paid static deployment instead!
-  # if os.getenv("REPL_OWNER"):
-  #   import keep_alive
-  #   keep_alive.keep_alive()
+  # Startup bot, connect to Discord
 
   mods = [
     'cogs.inventory',

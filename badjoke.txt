@@ -1,14 +1,14 @@
 start:
-  <subject> walks into a bar. The bartender says, "Sorry we don't <verb1> <obj> here."
-  <^subject>, <subject>, and <subject> walk into a bar.\nThe bartender says, "<^words>"
-  Q. What did <person> say when <pronoun> <relative> <verbed>?\nA. <^words>
-  Q. What <noun> will <thing> never <verb1>?\nA. <^obj>.
-  Q. What did one <noun> say to the other while <verbing> <obj>?\nA. <^words>
-  Q. What did <person> say to <thing>?\nA. <^words>
-  Q. Did you hear about <person> who's <way>?\nA. They're still <way>.
-  Q. Which <noun> is the most <adj>?\nA. <^thing>.
-  Q. What do you call <cross>?\nA. <^thing>.
-  Q. What is the difference between <thing> and <thing>?\nA. <^difference>!
+	<subject> walks into a bar. The bartender says, "Sorry we don't <verb1> <obj> here."
+	<^subject>, <subject>, and <subject> walk into a bar.\nThe bartender says, "<^words>"
+	Q. What did <person> say when <pronoun> <relative> <verbed>?\nA. <^words>
+	Q. What <noun> will <thing> never <verb1>?\nA. <^obj>.
+	Q. What did one <noun> say to the other while <verbing> <obj>?\nA. <^words>
+	Q. What did <person> say to <thing>?\nA. <^words>
+	Q. Did you hear about <person> who's <way>?\nA. They're still <way>.
+	Q. Which <noun> is the most <adj>?\nA. <^thing>.
+	Q. What do you call <cross>?\nA. <^thing>.
+	Q. What is the difference between <thing> and <thing>?\nA. <^difference>!
 	Q. What is <adj>, then <adj>, then <desc>?\nA. <^cross>.
 	Q. Why did <thing> <verb1> <obj>?\nA. To <verb2> <place>!
 	Q. What do you get when you cross <thing> with <obj>?\nA. <^cross>.
@@ -18,9 +18,9 @@ start:
 	Q. Who always says, "<^words>"\nA. <^person>.
 
 subject:
-  <person>
-  <thing>
-  <art> <pet>
+	<person>
+	<thing>
+	<art> <pet>
 
 words:
 	I heard about <thing>!
@@ -32,9 +32,9 @@ words:
 	you're standing on my <noun>!
 	<person> has been watching you!
 	want to hear a joke about <thing>?
-  you look <way>.
-  does this <verb1> <adj> to you?
-  <pronoun> <noun> is <way>!
+	you look <way>.
+	does this <verb1> <adj> to you?
+	<pronoun> <noun> is <way>!
 
 way:
 	<adj>

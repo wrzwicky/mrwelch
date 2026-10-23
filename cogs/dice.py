@@ -9,18 +9,16 @@ class DiceCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-        self.up = "abcdefghijklmnopqrstuvwxyz" + \
-                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" + \
-                  "1234567890" + \
-                  "!@#$%^&*()-=_+" + \
-                  "[]\;',./{}|:\"<>?" + \
-                  ""
-        self.down = "ɐqɔpǝɟƃɥıɾʞןɯuodbɹsʇnʌʍxʎz" + \
-                    "∀qϽᗡƎℲפHIſʞ˥WNOԀὉᴚS⊥∩ΛMX⅄Z" + \
-                    "ƖᄅƐㄣϛ9ㄥ860" + \
-                    "¡@#$%^⅋*)(-=‾+" + \
-                    "][\\;,'˙/}{|:,><¿" + \
-                    ""
+        self.up = "abcdefghijklmnopqrstuvwxyz" \
+                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ" \
+                  "1234567890" \
+                  "!@#$%^&*()-=_+" \
+                  "[]\\;',./{}|:\"<>?"
+        self.down = "ɐqɔpǝɟƃɥıɾʞןɯuodbɹsʇnʌʍxʎz" \
+                    "∀qϽᗡƎℲ⅁HIſꞰ⅂WNOԀÒᴚSꞱ∩ɅMX⅄Z" \
+                    "Ɩ↊↋ᔭ59Ɫ860" \
+                    "¡@#$%^⅋*()-=‾+" \
+                    "][/;,'˙\\{}|:,<>¿"
 
     @commands.command()
     async def roll(self, ctx, *words):

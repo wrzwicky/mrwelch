@@ -52,7 +52,7 @@ class InventoryCog(commands.Cog):
 
   @commands.command()
   async def give(self, ctx, user: discord.Member, item: str):
-    """give <item> to <user>"""
+    """'^give @user item': create and give <item> to <user>"""
     if user and item:
       item = single(self.inflector, item)
       log.info(f"Giving {item} to {user}")
@@ -131,7 +131,7 @@ class InventoryCog(commands.Cog):
     if user in self.allInventory:
       desc = self.allInventory[user].describe()
     if not desc:
-      desc = "nothing"
+      desc = "nothing, and should be ashamed"
     await ctx.channel.send(f"{intro} {desc}.")
 
   @commands.command()
