@@ -9,5 +9,6 @@ __pycache__/
 env/
 .pythonlibs/
 .venv/
+/data/inventories.json
 
 _query_info.xml

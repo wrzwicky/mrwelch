@@ -35,5 +35,7 @@ tests do not connect to Discord and do not require bot secrets. Music remains
 disabled as in the imported project.
 
 Discord.py 2.x requires async extension setup and explicit gateway intents.
-Keep those requirements when adding new cogs. Inventory is in memory and is lost
-when the process restarts.
+Keep those requirements when adding new cogs. Player inventories are saved to
+`data/inventories.json` after changes and restored when the inventory cog loads.
+That runtime data file is local to the Replit project and is excluded from Git;
+keep a backup if the inventory is important.

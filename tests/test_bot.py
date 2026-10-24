@@ -1,5 +1,7 @@
 import unittest
 from dataclasses import dataclass
+from pathlib import Path
+from tempfile import TemporaryDirectory
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, patch
 
@@ -11,6 +13,7 @@ from cogs.inventory import InventoryCog
 
 @dataclass(frozen=True)
 class FakeMember:
+    id: int
     name: str
     mention: str
 
@@ -18,11 +21,13 @@ class FakeMember:
 class BotSetupTests(unittest.IsolatedAsyncioTestCase):
     async def asyncSetUp(self):
         self.bot = main.create_bot()
-        InventoryCog.allInventory = {}
+        self.temp_dir = TemporaryDirectory()
+        self.bot.inventory_path = Path(self.temp_dir.name) / "inventories.json"
         await self.bot.setup_hook()
 
     async def asyncTearDown(self):
         await self.bot.close()
+        self.temp_dir.cleanup()
 
     async def test_loads_enabled_cogs_and_prefix_commands(self):
         self.assertEqual(set(self.bot.cogs), {
@@ -39,7 +44,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_give_and_inventory_commands_work(self):
         cog = self.bot.get_cog("InventoryCog")
-        user = FakeMember(name="Ada", mention="<@123>")
+        user = FakeMember(id=123, name="Ada", mention="<@123>")
         channel = SimpleNamespace(send=AsyncMock())
         ctx = SimpleNamespace(
             author=user,
@@ -52,10 +57,12 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
 
         ctx.message.add_reaction.assert_awaited_once_with("\N{THUMBS UP SIGN}")
         channel.send.assert_awaited_once_with("You have an apple.")
+        restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+        self.assertEqual(restored.allInventory[123].describe(), "an apple")
 
     async def test_giving_duplicate_item_reports_it(self):
         cog = self.bot.get_cog("InventoryCog")
-        user = FakeMember(name="Ada", mention="<@123>")
+        user = FakeMember(id=123, name="Ada", mention="<@123>")
         channel = SimpleNamespace(send=AsyncMock())
         ctx = SimpleNamespace(
             author=user,
@@ -67,6 +74,62 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         await self.bot.get_command("give").callback(cog, ctx, user, "apple")
 
         channel.send.assert_awaited_once_with("Too many of those floating around.")
+
+    async def test_inventory_is_restored_by_a_new_cog_instance(self):
+        cog = self.bot.get_cog("InventoryCog")
+        cog._add(FakeMember(id=123, name="Ada", mention="<@123>"), "apple")
+        cog.allInventory[123].pocket("apple")
+        cog._save_inventory()
+
+        restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+
+        self.assertEqual(restored.allInventory[123].pack, set())
+        self.assertEqual(restored.allInventory[123].pock, {"apple"})
+
+    async def test_take_transfers_an_item_and_persists_both_inventories(self):
+        cog = self.bot.get_cog("InventoryCog")
+        source = FakeMember(id=456, name="Bea", mention="<@456>")
+        player = FakeMember(id=123, name="Ada", mention="<@123>")
+        cog._add(source, "apple")
+        ctx = SimpleNamespace(
+            author=player,
+            guild=None,
+            channel=SimpleNamespace(send=AsyncMock()),
+        )
+
+        await self.bot.get_command("take").callback(cog, ctx, "apple")
+        restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+
+        self.assertNotIn(456, restored.allInventory)
+        self.assertEqual(restored.allInventory[123].describe(), "an apple")
+
+    async def test_pocket_and_drop_changes_are_persisted(self):
+        cog = self.bot.get_cog("InventoryCog")
+        player = FakeMember(id=123, name="Ada", mention="<@123>")
+        cog._add(player, "apple")
+        ctx = SimpleNamespace(
+            author=player,
+            message=SimpleNamespace(add_reaction=AsyncMock()),
+            channel=SimpleNamespace(send=AsyncMock()),
+        )
+
+        await self.bot.get_command("pocket").callback(cog, ctx, "apple")
+        restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+        self.assertEqual(restored.allInventory[123].pock, {"apple"})
+
+        await self.bot.get_command("drop").callback(cog, ctx, "apple")
+        restored_after_drop = InventoryCog(
+            self.bot, storage_path=self.bot.inventory_path
+        )
+        self.assertNotIn(123, restored_after_drop.allInventory)
+
+    async def test_corrupt_inventory_file_fails_explicitly(self):
+        self.bot.inventory_path.write_text("{broken json", encoding="utf-8")
+
+        with self.assertRaisesRegex(
+            RuntimeError, "Cannot load saved inventories"
+        ):
+            InventoryCog(self.bot, storage_path=self.bot.inventory_path)
 
     async def test_mentioned_quote_request_returns_requested_entry(self):
         bot_user = discord.User(
@@ -84,7 +147,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         channel = SimpleNamespace(name="general", send=AsyncMock())
         message = SimpleNamespace(
             content=f"<@{bot_user.id}> {quote_number}",
-            author=FakeMember(name="Ada", mention="<@123>"),
+            author=FakeMember(id=123, name="Ada", mention="<@123>"),
             mentions=[bot_user],
             guild=SimpleNamespace(name="Test Server", roles=[]),
             channel=channel,
@@ -113,7 +176,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         channel = SimpleNamespace(name="general", send=AsyncMock())
         message = SimpleNamespace(
             content="1",
-            author=FakeMember(name="Ada", mention="<@123>"),
+            author=FakeMember(id=123, name="Ada", mention="<@123>"),
             mentions=[],
             guild=SimpleNamespace(name="Test Server", roles=[]),
             channel=channel,

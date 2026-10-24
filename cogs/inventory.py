@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
+import json
 import logging, random
+import os
+from pathlib import Path
 
 import discord, discord.utils
 from discord.ext import commands
@@ -8,6 +11,13 @@ import inflect
 from user_inventory import *
 
 log = logging.getLogger('mrwelch')
+
+DATA_VERSION = 1
+DEFAULT_STORAGE_PATH = Path(__file__).resolve().parent.parent / "data" / "inventories.json"
+
+
+class InventoryPersistenceError(RuntimeError):
+  """Raised when saved inventory data cannot safely be loaded or written."""
 
 
 def single(p,noun):
@@ -21,32 +31,87 @@ def single(p,noun):
 
 class InventoryCog(commands.Cog):
   """Weird little per-user inventory keeper"""
-  
-  allInventory = {} #{member -> []}
 
-
-  def __init__(self, bot):
+  def __init__(self, bot, storage_path=None):
     self.bot = bot
-
+    self.storage_path = Path(storage_path or DEFAULT_STORAGE_PATH)
+    self.allInventory = self._load_inventory()
     # https://pypi.org/project/inflect/
     self.inflector = inflect.engine()
 
+  @staticmethod
+  def _user_id(user):
+    return user if isinstance(user, int) else user.id
+
+  def _load_inventory(self):
+    if not self.storage_path.exists():
+      return {}
+    try:
+      with self.storage_path.open(encoding="utf-8") as file:
+        data = json.load(file)
+      if (not isinstance(data, dict)
+          or data.get("version") != DATA_VERSION
+          or not isinstance(data.get("inventories"), dict)):
+        raise ValueError("unsupported or malformed inventory data")
+
+      inventories = {}
+      for raw_id, inventory_data in data["inventories"].items():
+        if not isinstance(raw_id, str) or not raw_id.isdecimal():
+          raise ValueError("inventory user IDs must be numeric strings")
+        inventories[int(raw_id)] = UserInventory.from_data(inventory_data)
+      return inventories
+    except (OSError, json.JSONDecodeError, ValueError) as error:
+      raise InventoryPersistenceError(
+        f"Cannot load saved inventories from {self.storage_path}: {error}"
+      ) from error
+
+  def _save_inventory(self):
+    data = {
+      "version": DATA_VERSION,
+      "inventories": {
+        str(user_id): inventory.to_data()
+        for user_id, inventory in sorted(self.allInventory.items())
+      },
+    }
+    temporary_path = self.storage_path.with_name(
+      f".{self.storage_path.name}.{os.getpid()}.tmp"
+    )
+    try:
+      self.storage_path.parent.mkdir(parents=True, exist_ok=True)
+      with temporary_path.open("w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
+        file.write("\n")
+        file.flush()
+        os.fsync(file.fileno())
+      os.replace(temporary_path, self.storage_path)
+    except OSError as error:
+      temporary_path.unlink(missing_ok=True)
+      raise InventoryPersistenceError(
+        f"Cannot save inventories to {self.storage_path}: {error}"
+      ) from error
+
 
   def _add(self, user, item):
-    if not user in self.allInventory:
-      self.allInventory[user] = UserInventory()
-    self.allInventory[user].add(item)
+    self._inv(user).add(item)
+    self._save_inventory()
 
   def _remove(self, user, item):
-    if user in self.allInventory:
-      self.allInventory[user].remove(item)
+    user_id = self._user_id(user)
+    if user_id in self.allInventory:
+      inventory = self.allInventory[user_id]
+      if inventory.has(item):
+        inventory.remove(item)
+        if inventory.isEmpty():
+          del self.allInventory[user_id]
+        self._save_inventory()
 
   def _inv(self, user):
-    if user in self.allInventory:
-      return self.allInventory[user]
+    user_id = self._user_id(user)
+    if user_id in self.allInventory:
+      return self.allInventory[user_id]
     else:
       inv = UserInventory()
-      self.allInventory[user] = inv
+      self.allInventory[user_id] = inv
       return inv
 
 
@@ -62,6 +127,8 @@ class InventoryCog(commands.Cog):
         if user == self.bot.user:
           # bot puts everything in pockets
           inv.pocket(item)
+        self._save_inventory()
+        if user == self.bot.user:
           # if item=='nothing' say 'thanks for nothing'
           if item.lower() == "nothing":
             await ctx.channel.send("Thanks for nothing.")
@@ -82,12 +149,21 @@ class InventoryCog(commands.Cog):
     """find all people with <item>, pick one at random, take it from them"""
     if item:
       item = single(self.inflector, item)
-      victims = [u for u in self.allInventory if self.allInventory[u].see(item)]
+      victims = [user_id for user_id, inventory in self.allInventory.items()
+                 if inventory.see(item)]
       if victims:
-        v = random.choice(victims)
-        self._inv(v).remove(item)
+        victim_id = random.choice(victims)
+        victim_inventory = self.allInventory[victim_id]
+        victim_inventory.remove(item)
+        if victim_inventory.isEmpty():
+          del self.allInventory[victim_id]
         self._inv(ctx.author).add(item)
-        resp = f"You \"found\" {v.name}'s {item}!"
+        self._save_inventory()
+        guild = getattr(ctx, "guild", None)
+        member = guild.get_member(victim_id) if guild else None
+        user = member or self.bot.get_user(victim_id)
+        victim_name = user.name if user else f"user {victim_id}"
+        resp = f"You \"found\" {victim_name}'s {item}!"
       else:
         resp = f"You don't see any {item}."
       await ctx.channel.send(resp)
@@ -98,10 +174,11 @@ class InventoryCog(commands.Cog):
     if item:
       item = single(self.inflector, item)
       user = ctx.author
-      if user in self.allInventory:
-        inv = self.allInventory[user]
+      user_id = self._user_id(user)
+      if user_id in self.allInventory:
+        inv = self.allInventory[user_id]
         if inv.has(item):
-          inv.remove(item)
+          self._remove(user, item)
           await ctx.channel.send("Dropped.")
 
   @commands.command()
@@ -110,10 +187,11 @@ class InventoryCog(commands.Cog):
     if item:
       item = single(self.inflector, item)
       user = ctx.author
-      if user in self.allInventory:
-        inv = self.allInventory[user]
+      user_id = self._user_id(user)
+      if user_id in self.allInventory:
+        inv = self.allInventory[user_id]
         if inv.has(item):
-          inv.remove(item)
+          self._remove(user, item)
           await ctx.channel.send(f"You drank the {item}.")
 
   @commands.command(aliases=['i'])
@@ -128,8 +206,9 @@ class InventoryCog(commands.Cog):
       intro = user.mention + " has"
 
     desc = None
-    if user in self.allInventory:
-      desc = self.allInventory[user].describe()
+    user_id = self._user_id(user)
+    if user_id in self.allInventory:
+      desc = self.allInventory[user_id].describe()
     if not desc:
       desc = "nothing, and should be ashamed"
     await ctx.channel.send(f"{intro} {desc}.")
@@ -139,7 +218,7 @@ class InventoryCog(commands.Cog):
     """hide <item> from other users"""
     resp = None
     if item:
-      inv = self.allInventory.get(ctx.author)
+      inv = self.allInventory.get(self._user_id(ctx.author))
       if not inv or inv.isEmpty():
         #resp = "You have nothing."
         await ctx.message.add_reaction("\N{SHRUG}") #("\N{NO ENTRY}")
@@ -148,6 +227,7 @@ class InventoryCog(commands.Cog):
         await ctx.message.add_reaction("\N{SHRUG}")
       else:
         inv.pocket(item)
+        self._save_inventory()
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
       if resp: await ctx.channel.send(resp)
 
@@ -158,7 +238,10 @@ class InventoryCog(commands.Cog):
 
 
 async def setup(bot):
-  await bot.add_cog(InventoryCog(bot))
+  await bot.add_cog(InventoryCog(
+    bot,
+    storage_path=getattr(bot, "inventory_path", None),
+  ))
 
 
 

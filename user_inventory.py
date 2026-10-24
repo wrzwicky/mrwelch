@@ -8,6 +8,26 @@ class UserInventory:
     self.pack = set()
     self.pock = set()
 
+  def to_data(self):
+    """Return a JSON-compatible representation with stable item ordering."""
+    return {"pack": sorted(self.pack), "pock": sorted(self.pock)}
+
+  @classmethod
+  def from_data(cls, data):
+    """Build an inventory from validated JSON data."""
+    if not isinstance(data, dict) or set(data) != {"pack", "pock"}:
+      raise ValueError("inventory must contain exactly 'pack' and 'pock' lists")
+    pack, pock = data["pack"], data["pock"]
+    if (not isinstance(pack, list) or not all(isinstance(item, str) for item in pack)
+        or not isinstance(pock, list) or not all(isinstance(item, str) for item in pock)):
+      raise ValueError("inventory items must be lists of strings")
+    if set(pack) & set(pock):
+      raise ValueError("an item cannot be both visible and pocketed")
+    inventory = cls()
+    inventory.pack = set(pack)
+    inventory.pock = set(pock)
+    return inventory
+
   def isEmpty(self):
     return not (self.pack or self.pock)
 
