@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import math, os, random, re, sys, time, urllib
+from pathlib import Path
 from typing import List, Tuple
 from dotenv import load_dotenv
 
@@ -95,17 +96,18 @@ class WelchCog(commands.Cog, name="mrwelch"):
   def __init__(self, bot):
     self.bot = bot
 
-    p = os.path.join(sys.path[0], "mrwelch.txt")
+    data_dir = Path(__file__).resolve().parent.parent
+    p = data_dir / "mrwelch.txt"
     mrwelch = loadMrwelch(p)
 
-    p = os.path.join(sys.path[0], "shane.txt")
+    p = data_dir / "shane.txt"
     with open(p, "r") as f:
       num = max(mrwelch.keys())
       for line in f:
         num += 1
         mrwelch[num] = line
 
-    p = os.path.join(sys.path[0], "critrole.txt")
+    p = data_dir / "critrole.txt"
     critrole = []
     with open(p,"r") as f:
       for line in f:

@@ -44,6 +44,7 @@ EXTENSIONS = (
     "cogs.story",
     "cogs.helphelp",
 )
+COMMAND_PREFIX = "^"
 
 
 class WelchBot(commands.Bot):
@@ -52,15 +53,19 @@ class WelchBot(commands.Bot):
             await self.load_extension(extension)
 
 
-intents = discord.Intents.default()
-intents.message_content = True
-bot = WelchBot(
-    command_prefix="^",  # Change to desired prefix
-    case_insensitive=True,  # Commands aren't case-sensitive
-    intents=intents,
-    description="Things Mr. Welch is no longer allowed to do in D&D.",
-)
+def create_bot():
+    """Create a bot configured for the prefix commands used by this project."""
+    intents = discord.Intents.default()
+    intents.message_content = True
+    return WelchBot(
+        command_prefix=COMMAND_PREFIX,
+        case_insensitive=True,
+        intents=intents,
+        description="Things Mr. Welch is no longer allowed to do in D&D.",
+    )
 
+
+bot = create_bot()
 bot.author_id = os.environ.get("DISCORD_AUTHOR_ID")
 
 
@@ -87,6 +92,32 @@ async def check_startup():
         print("Commands: " + ", ".join(sorted(c.name for c in bot.commands)))
 
 
+def validate_runtime_config(environ=None):
+    """Return the bot token or exit with a useful configuration error."""
+    environ = os.environ if environ is None else environ
+    required = ("DISCORD_AUTHOR_ID", "DISCORD_BOT_SECRET")
+    missing = [key for key in required if not environ.get(key, "").strip()]
+    if missing:
+        raise SystemExit("Missing Replit Secrets: " + ", ".join(missing))
+    if not environ["DISCORD_AUTHOR_ID"].isdecimal():
+        raise SystemExit("DISCORD_AUTHOR_ID must be your numeric Discord user ID.")
+    return environ["DISCORD_BOT_SECRET"]
+
+
+def run_discord_bot(token):
+    """Start the gateway client and translate common setup failures."""
+    try:
+        bot.run(token)
+    except discord.LoginFailure as exc:
+        raise SystemExit(
+            "Discord rejected DISCORD_BOT_SECRET. Update the bot token in Replit Secrets."
+        ) from exc
+    except discord.PrivilegedIntentsRequired as exc:
+        raise SystemExit(
+            "Enable Message Content Intent on the Bot page in the Discord Developer Portal."
+        ) from exc
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=bot.description)
     parser.add_argument(
@@ -98,19 +129,4 @@ if __name__ == "__main__":
     if args.check:
         asyncio.run(check_startup())
     else:
-        required = ("DISCORD_AUTHOR_ID", "DISCORD_BOT_SECRET")
-        missing = [key for key in required if not os.environ.get(key, "").strip()]
-        if missing:
-            sys.exit("Missing Replit Secrets: " + ", ".join(missing))
-        if not os.environ["DISCORD_AUTHOR_ID"].isdecimal():
-            sys.exit("DISCORD_AUTHOR_ID must be your numeric Discord user ID.")
-        try:
-            bot.run(os.environ["DISCORD_BOT_SECRET"])
-        except discord.LoginFailure:
-            sys.exit(
-                "Discord rejected DISCORD_BOT_SECRET. Update the bot token in Replit Secrets."
-            )
-        except discord.PrivilegedIntentsRequired:
-            sys.exit(
-                "Enable Message Content Intent on the Bot page in the Discord Developer Portal."
-            )
+        run_discord_bot(validate_runtime_config())

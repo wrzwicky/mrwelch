@@ -2,7 +2,7 @@ import copy
 import os
 import random
 import re
-import sys
+from pathlib import Path
 
 NODUPS = False
 
@@ -11,7 +11,7 @@ class Story:
 
   def __init__(self, filename=None) -> None:
     if not filename:
-      filename = os.path.join(sys.path[0], "badjoke.txt")
+      filename = Path(__file__).resolve().parent / "badjoke.txt"
     self.masterGrammar = self.readGrammar(filename)
 
   def tell(self, rule=None):

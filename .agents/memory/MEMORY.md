@@ -1,1 +1,2 @@
 - [Python package installation](python-package-installation.md) — Replit's installer may normalize requested pins; check the generated dependency constraints.
+- [Bundled data paths](bundled-data-paths.md) — Resolve bot text assets relative to their module, not the test runner's `sys.path[0]`.
