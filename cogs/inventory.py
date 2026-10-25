@@ -131,18 +131,18 @@ class InventoryCog(commands.Cog):
         if user == self.bot.user:
           # if item=='nothing' say 'thanks for nothing'
           if item.lower() == "nothing":
-            await ctx.channel.send("Thanks for nothing.")
+            await ctx.reply("Thanks for nothing.")
           else:
-            await ctx.channel.send("Thank you!")
+            await ctx.reply("Thank you!")
         else:
           #await ctx.channel.send(f"{ctx.author.mention} gave {self.inflector.a(item)} to {user.mention}.")
           await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
       else:
         if user == self.bot.user:
           #await ctx.channel.send("No thank you.")
-          await ctx.channel.send("No thanks, mrwelch is independently wealchy.")
+          await ctx.reply("No thanks, mrwelch is independently wealchy.")
         else:
-          await ctx.channel.send(f"Too many of those floating around.")
+          await ctx.reply(f"Too many of those floating around.")
 
   @commands.command()
   async def take(self, ctx, item: str):
@@ -166,7 +166,7 @@ class InventoryCog(commands.Cog):
         resp = f"You \"found\" {victim_name}'s {item}!"
       else:
         resp = f"You don't see any {item}."
-      await ctx.channel.send(resp)
+      await ctx.reply(resp)
 
   @commands.command()
   async def drop(self, ctx, item: str):
@@ -179,7 +179,7 @@ class InventoryCog(commands.Cog):
         inv = self.allInventory[user_id]
         if inv.has(item):
           self._remove(user, item)
-          await ctx.channel.send("Dropped.")
+          await ctx.reply("Dropped.")
 
   @commands.command()
   async def use(self, ctx, item: str):
@@ -192,7 +192,7 @@ class InventoryCog(commands.Cog):
         inv = self.allInventory[user_id]
         if inv.has(item):
           self._remove(user, item)
-          await ctx.channel.send(f"You drank the {item}.")
+          await ctx.reply(f"You drank the {item}.")
 
   @commands.command(aliases=['i'])
   async def inventory(self, ctx, user: discord.Member = None):
@@ -211,7 +211,7 @@ class InventoryCog(commands.Cog):
       desc = self.allInventory[user_id].describe()
     if not desc:
       desc = "nothing, and should be ashamed"
-    await ctx.channel.send(f"{intro} {desc}.")
+    await ctx.reply(f"{intro} {desc}.")
 
   @commands.command()
   async def pocket(self, ctx, item: str):
@@ -229,11 +229,11 @@ class InventoryCog(commands.Cog):
         inv.pocket(item)
         self._save_inventory()
         await ctx.message.add_reaction("\N{THUMBS UP SIGN}")
-      if resp: await ctx.channel.send(resp)
+      if resp: await ctx.reply(resp)
 
   @commands.command(hidden=True)
   async def reboot(self, ctx):
-    await ctx.channel.send("Who do you think you are?!")
+    await ctx.reply("Who do you think you are?!")
 
 
 

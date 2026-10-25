@@ -16,8 +16,8 @@ idunno = Magic8Ball()
 
 def loadMrwelch(fil): #-> {int -> str}
   mrwelch = {}
-  with open(fil, "r") as f:
-    rx = re.compile("^(\d+)\.\s*(.*)$")
+  with open(fil, "r", encoding="utf-8") as f:
+    rx = re.compile(r"^(\d+)\.\s*(.*)$")
     for line in f:
       line = line.strip()
       if not line.startswith("#"):
@@ -25,7 +25,16 @@ def loadMrwelch(fil): #-> {int -> str}
         mrwelch[int(num)] = msg
   return mrwelch
 
-def reparse2(bot: commands.Bot, message: discord.Message) -> List:
+def loadLines(file):
+  shanes = []
+  with open(file, "r", encoding="utf-8") as f:
+    for line in f:
+      line = line.strip()
+      if not line.startswith("#"):
+        shanes.append(line)
+  return shanes
+
+def reparseMessage(bot: commands.Bot, message: discord.Message) -> List:
   """
   Parse message content, alternating strings and User/Role/TextChannel objects.
   Roles and channels are looked up in the server from whence came the message.
@@ -35,7 +44,7 @@ def reparse2(bot: commands.Bot, message: discord.Message) -> List:
   #  - <@ for user, <@! if user has nick
   # role mentions: <@&-id->
   # chan mentions: <#-id->
-  mx = re.compile("<(@|@!|@&|#)(\d+)>")
+  mx = re.compile(r"<(@|@!|@&|#)(\d+)>")
   msg = message.content
   ans = []
   while True:
@@ -101,17 +110,12 @@ class WelchCog(commands.Cog, name="mrwelch"):
     mrwelch = loadMrwelch(p)
 
     p = data_dir / "shane.txt"
-    with open(p, "r") as f:
-      num = max(mrwelch.keys())
-      for line in f:
-        num += 1
-        mrwelch[num] = line
+    lines = loadLines(p)
+    lastnum = max(mrwelch.keys())
+    mrwelch.update( dict(zip(range(lastnum + 1, lastnum + len(lines) + 1), lines)) )
 
     p = data_dir / "critrole.txt"
-    critrole = []
-    with open(p,"r") as f:
-      for line in f:
-        critrole.append(line.strip())
+    critrole = loadLines(p)
 
     log.info(f"{len(mrwelch) + len(critrole)} snarks loaded")
 
@@ -177,11 +181,13 @@ class WelchCog(commands.Cog, name="mrwelch"):
       log.info("(my own response)")
       return
 
-    # I believe the problem is this: message.mentions is intended to contain @mentions, but in reality it also includes the bot if some responds to it. So I have to re-parse the raw text message, filter out the actual mentions, and make decisions from that.
+    # I believe the problem is this: message.mentions is intended to contain @mentions,
+    # but in reality it also includes the bot if someone responds to it. So I have to
+    # re-parse the raw text message, filter out the actual mentions, and make decisions from that.
 
     # parse out <@id> mentions
     #  -msg.mentions includes bot.user if someone replies to bot
-    objmsg = reparse2(self.bot, msg)
+    objmsg = reparseMessage(self.bot, msg)
     m = ' '.join(s for s in objmsg if isinstance(s, str))
     userMents = set(u for u in objmsg if isinstance(u, discord.User) or isinstance(u, discord.ClientUser))
     roleMents = set(u for u in objmsg if isinstance(u, discord.Role))
@@ -212,16 +218,16 @@ class WelchCog(commands.Cog, name="mrwelch"):
 
     if m:
       if m == "crro":
-        await msg.channel.send(random.choice(self.critrole))
+        await msg.reply(random.choice(self.critrole))
         return
 
       try:
         # lone integer? use as index
         i = int(m)
         if i in self.mrwelch:
-          await msg.channel.send("%d. %s" % (i, self.mrwelch[i]))
+          await msg.reply("%d. %s" % (i, self.mrwelch[i]))
         else:
-          await msg.channel.send("Mr. Welch is not so experienced just yet.")
+          await msg.reply("Mr. Welch is not so experienced just yet.")
       except ValueError:
         log.info(" -> not a number, trying math")
         try:
@@ -229,14 +235,15 @@ class WelchCog(commands.Cog, name="mrwelch"):
           ans = self.eval.eval(m)
           if isinstance(ans, (int,float)):
             ans = round_to_1(ans)
-            await msg.channel.send("Maybe like " + str(ans))
+            await msg.reply("Maybe like " + str(ans))
           elif isinstance(ans, (list, dict, tuple, complex)):
-            await msg.channel.send(str(ans))
+            await msg.reply(str(ans))
           else:
             raise TypeError("Not a type I print: "+str(ans))
         except self.REFUSERS as e:
           log.info(" -> refused eval: "+repr(e))
-          await msg.channel.send("Nah.")
+          # await msg.reply("Nah.")
+          await msg.reply(idunno.rando())
         except:
           # else text search
           t,e,tb = sys.exc_info()
@@ -245,12 +252,12 @@ class WelchCog(commands.Cog, name="mrwelch"):
           ix = [k for k in self.mrwelch if m in self.mrwelch[k].lower()]
           if len(ix) > 0:
             i = random.choice(ix)
-            await msg.channel.send("%d. %s" % (i, self.mrwelch[i]))
+            await msg.reply("%d. %s" % (i, self.mrwelch[i]))
           else:
             #await msg.channel.send("Mr. Welch has not encountered such a thing.")
-            await msg.channel.send(idunno.rando())
+            await msg.reply(idunno.rando())
     else:
-      await msg.channel.send(self.rando())
+      await msg.reply(self.rando())
 
 
 async def setup(bot):

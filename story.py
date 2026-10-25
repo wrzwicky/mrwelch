@@ -1,3 +1,4 @@
+import argparse
 import copy
 import os
 import random
@@ -28,7 +29,9 @@ class Story:
     with open(filename) as fil:
       for lin in fil:
         lin = lin.strip().encode('utf-8', 'namereplace').decode('unicode_escape')
-        if lin.endswith(":"):
+        if lin.startswith("#"):
+          pass
+        elif lin.endswith(":"):
           rule = lin[0:-1]
           grammar[rule] = []
         elif len(lin) > 0:
@@ -66,6 +69,21 @@ class Story:
     return outp
   
 
+def main(argv=None):
+  parser = argparse.ArgumentParser(description="Generate a story from a grammar file.")
+  parser.add_argument("filename", nargs="?", default="badjoke.txt",
+                      help="grammar file (defaults to badjoke.txt)")
+  parser.add_argument("start_token", nargs="?", default="start",
+                      help="rule to expand (requires a filename, default is 'start')")
+  args = parser.parse_args(argv)
+
+  filename = Path(args.filename)
+  if not filename.is_absolute():
+    filename = Path(__file__).resolve().parent / filename
+
+  story = Story(filename)
+  print(story.tell(args.start_token))
+
+
 if __name__ == "__main__":
-  s = Story()
-  print(s.tell())
+  main()

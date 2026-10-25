@@ -49,6 +49,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             author=user,
             channel=channel,
+            reply=AsyncMock(),
             message=SimpleNamespace(add_reaction=AsyncMock()),
         )
 
@@ -56,7 +57,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         await self.bot.get_command("inventory").callback(cog, ctx)
 
         ctx.message.add_reaction.assert_awaited_once_with("\N{THUMBS UP SIGN}")
-        channel.send.assert_awaited_once_with("You have an apple.")
+        ctx.reply.assert_awaited_once_with("You have an apple.")
         restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
         self.assertEqual(restored.allInventory[123].describe(), "an apple")
 
@@ -67,13 +68,14 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             author=user,
             channel=channel,
+            reply=AsyncMock(),
             message=SimpleNamespace(add_reaction=AsyncMock()),
         )
 
         await self.bot.get_command("give").callback(cog, ctx, user, "apple")
         await self.bot.get_command("give").callback(cog, ctx, user, "apple")
 
-        channel.send.assert_awaited_once_with("Too many of those floating around.")
+        ctx.reply.assert_awaited_once_with("Too many of those floating around.")
 
     async def test_inventory_is_restored_by_a_new_cog_instance(self):
         cog = self.bot.get_cog("InventoryCog")
@@ -94,10 +96,11 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             author=player,
             guild=None,
-            channel=SimpleNamespace(send=AsyncMock()),
+            reply=AsyncMock(),
         )
 
         await self.bot.get_command("take").callback(cog, ctx, "apple")
+        ctx.reply.assert_awaited_once_with("You \"found\" user 456's apple!")
         restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
 
         self.assertNotIn(456, restored.allInventory)
@@ -111,6 +114,7 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
             author=player,
             message=SimpleNamespace(add_reaction=AsyncMock()),
             channel=SimpleNamespace(send=AsyncMock()),
+            reply=AsyncMock(),
         )
 
         await self.bot.get_command("pocket").callback(cog, ctx, "apple")
@@ -144,20 +148,21 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         self.bot._connection.user = bot_user
         cog = self.bot.get_cog("mrwelch")
         quote_number = min(cog.mrwelch)
-        channel = SimpleNamespace(name="general", send=AsyncMock())
+        channel = SimpleNamespace(name="general")
         message = SimpleNamespace(
             content=f"<@{bot_user.id}> {quote_number}",
             author=FakeMember(id=123, name="Ada", mention="<@123>"),
             mentions=[bot_user],
             guild=SimpleNamespace(name="Test Server", roles=[]),
             channel=channel,
+            reply=AsyncMock(),
             created_at="timestamp",
         )
 
         with patch.object(self.bot, "get_user", return_value=bot_user):
             await cog.on_message(message)
 
-        channel.send.assert_awaited_once_with(
+        message.reply.assert_awaited_once_with(
             f"{quote_number}. {cog.mrwelch[quote_number]}"
         )
 
