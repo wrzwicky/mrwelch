@@ -1,3 +1,4 @@
+import os
 import unittest
 from dataclasses import dataclass
 from pathlib import Path
@@ -8,7 +9,7 @@ from unittest.mock import AsyncMock, patch
 import discord
 
 import main
-from cogs.inventory import InventoryCog
+from cogs.inventory import InventoryCog, InventoryPersistenceError
 
 
 @dataclass(frozen=True)
@@ -30,16 +31,31 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         self.temp_dir.cleanup()
 
     async def test_loads_enabled_cogs_and_prefix_commands(self):
-        self.assertEqual(set(self.bot.cogs), {
-            "InventoryCog", "mrwelch", "DictionaryCog", "DiceCog",
-            "StoryCog", "HelpCog",
-        })
+        self.assertEqual(
+            set(self.bot.cogs),
+            {
+                "InventoryCog",
+                "mrwelch",
+                "DictionaryCog",
+                "DiceCog",
+                "StoryCog",
+                "HelpCog",
+            },
+        )
         self.assertTrue(self.bot.intents.message_content)
         self.assertEqual(self.bot.command_prefix, main.COMMAND_PREFIX)
-        self.assertTrue({
-            "give", "take", "drop", "use", "inventory", "pocket",
-            "roll", "help",
-        }.issubset({command.name for command in self.bot.commands}))
+        self.assertTrue(
+            {
+                "give",
+                "take",
+                "drop",
+                "use",
+                "inventory",
+                "pocket",
+                "roll",
+                "help",
+            }.issubset({command.name for command in self.bot.commands})
+        )
         self.assertIs(self.bot.get_command("i"), self.bot.get_command("inventory"))
 
     async def test_give_and_inventory_commands_work(self):
@@ -55,9 +71,9 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
 
         await self.bot.get_command("give").callback(cog, ctx, user, "apples")
         await self.bot.get_command("inventory").callback(cog, ctx)
-
         ctx.message.add_reaction.assert_awaited_once_with("\N{THUMBS UP SIGN}")
         ctx.reply.assert_awaited_once_with("You have an apple.")
+
         restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
         self.assertEqual(restored.allInventory[123].describe(), "an apple")
 
@@ -88,6 +104,43 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(restored.allInventory[123].pack, set())
         self.assertEqual(restored.allInventory[123].pock, {"apple"})
 
+    async def test_atomic_save_uses_a_visible_temporary_filename(self):
+        cog = self.bot.get_cog("InventoryCog")
+        player = FakeMember(id=123, name="Ada", mention="<@123>")
+
+        with patch("cogs.inventory.os.replace", wraps=os.replace) as replace:
+            cog._add(player, "apple")
+
+        temporary_path = Path(replace.call_args.args[0])
+        self.assertFalse(temporary_path.name.startswith("."))
+        self.assertTrue(temporary_path.name.startswith("inventory-"))
+
+    async def test_inventory_survives_a_full_bot_restart(self):
+        cog = self.bot.get_cog("InventoryCog")
+        player = FakeMember(id=123, name="Ada", mention="<@123>")
+        ctx = SimpleNamespace(
+            author=player,
+            channel=SimpleNamespace(send=AsyncMock()),
+            message=SimpleNamespace(add_reaction=AsyncMock()),
+            reply=AsyncMock(),
+        )
+        await self.bot.get_command("give").callback(cog, ctx, player, "lantern")
+        await self.bot.get_command("pocket").callback(cog, ctx, "lantern")
+
+        restarted_bot = main.create_bot()
+        restarted_bot.inventory_path = self.bot.inventory_path
+        await restarted_bot.setup_hook()
+        try:
+            restored_cog = restarted_bot.get_cog("InventoryCog")
+            restored = restored_cog.allInventory[123]
+            self.assertEqual(restored.pack, set())
+            self.assertEqual(restored.pock, {"lantern"})
+
+            await restarted_bot.get_command("inventory").callback(restored_cog, ctx)
+            ctx.reply.assert_awaited_once_with("You have something in pockets.")
+        finally:
+            await restarted_bot.close()
+
     async def test_take_transfers_an_item_and_persists_both_inventories(self):
         cog = self.bot.get_cog("InventoryCog")
         source = FakeMember(id=456, name="Bea", mention="<@456>")
@@ -96,11 +149,12 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         ctx = SimpleNamespace(
             author=player,
             guild=None,
+            channel=SimpleNamespace(send=AsyncMock()),
             reply=AsyncMock(),
         )
 
         await self.bot.get_command("take").callback(cog, ctx, "apple")
-        ctx.reply.assert_awaited_once_with("You \"found\" user 456's apple!")
+        ctx.reply.assert_awaited_once_with('You "found" user 456\'s apple!')
         restored = InventoryCog(self.bot, storage_path=self.bot.inventory_path)
 
         self.assertNotIn(456, restored.allInventory)
@@ -127,13 +181,23 @@ class BotSetupTests(unittest.IsolatedAsyncioTestCase):
         )
         self.assertNotIn(123, restored_after_drop.allInventory)
 
-    async def test_corrupt_inventory_file_fails_explicitly(self):
-        self.bot.inventory_path.write_text("{broken json", encoding="utf-8")
-
-        with self.assertRaisesRegex(
-            RuntimeError, "Cannot load saved inventories"
-        ):
-            InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+    async def test_invalid_saved_inventory_is_never_replaced(self):
+        invalid_files = (
+            "{broken json",
+            '{"version": 1, "inventories": {"123": {"pack": "invalid", "pock": []}}}',
+            '{"version": 1, "inventories": {"123": '
+            '{"pack": ["item"], "pock": ["item"]}}}',
+        )
+        for original in invalid_files:
+            with self.subTest(saved_data=original):
+                self.bot.inventory_path.write_text(original, encoding="utf-8")
+                with self.assertRaisesRegex(
+                    InventoryPersistenceError, "Cannot load saved inventories"
+                ):
+                    InventoryCog(self.bot, storage_path=self.bot.inventory_path)
+                self.assertEqual(
+                    self.bot.inventory_path.read_text(encoding="utf-8"), original
+                )
 
     async def test_mentioned_quote_request_returns_requested_entry(self):
         bot_user = discord.User(
@@ -201,15 +265,21 @@ class StartupFailureTests(unittest.TestCase):
             main.validate_runtime_config({})
 
     def test_non_numeric_author_id_is_rejected(self):
-        with self.assertRaisesRegex(SystemExit, "DISCORD_AUTHOR_ID must be your numeric"):
-            main.validate_runtime_config({
-                "DISCORD_AUTHOR_ID": "not-numeric",
-                "DISCORD_BOT_SECRET": "unused",
-            })
+        with self.assertRaisesRegex(
+            SystemExit, "DISCORD_AUTHOR_ID must be your numeric"
+        ):
+            main.validate_runtime_config(
+                {
+                    "DISCORD_AUTHOR_ID": "not-numeric",
+                    "DISCORD_BOT_SECRET": "unused",
+                }
+            )
 
     def test_discord_rejected_token_has_actionable_error(self):
         with patch.object(main.bot, "run", side_effect=discord.LoginFailure):
-            with self.assertRaisesRegex(SystemExit, "Discord rejected DISCORD_BOT_SECRET"):
+            with self.assertRaisesRegex(
+                SystemExit, "Discord rejected DISCORD_BOT_SECRET"
+            ):
                 main.run_discord_bot("unused")
 
     def test_missing_message_content_intent_has_actionable_error(self):

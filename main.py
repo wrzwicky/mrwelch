@@ -1,36 +1,31 @@
 #!/usr/bin/env python3
+import argparse
+import asyncio
 import logging
+import os
+import random
+
+from dotenv import load_dotenv
+
+import discord
+import discord.utils
+from discord.ext import commands
 
 logging.basicConfig(level=logging.ERROR)
 log = logging.getLogger("mrwelch")
-log.setLevel(logging.INFO)  # DEBUG)
-# discord.py dumps stuff to DEBUG
-
-import argparse
-import asyncio
-import os, random, re, sys
-import simpleeval
-from typing import List, Tuple
-from dotenv import load_dotenv
-
-import discord, discord.utils
-from discord.ext import commands
+log.setLevel(logging.INFO)
 
 
 ##
 ## "Things Mr. Welch is not allowed to do" bot for Discord
 ## mention @mrwelch for random quote
-## or mention with nubmer for that exact quote
+## or mention with number for that exact quote
 ## or mention with string for random quote containing string
 ## or mention with Python expression for braining
 ##
-## Create file ".env" with secret keys:
+## Create Replit Secrets:
 ##   DISCORD_AUTHOR_ID
-##   DISCORD_BOT_ID
 ##   DISCORD_BOT_SECRET
-##
-## https://discordpy.readthedocs.io/en/latest/api.html
-## https://discord.com/api/oauth2/authorize?client_id=773455562338992159&permissions=2048&scope=bot
 ##
 
 random.seed()
@@ -71,12 +66,12 @@ bot.author_id = os.environ.get("DISCORD_AUTHOR_ID")
 
 @bot.event
 async def on_ready():
-    log.info("I'm in as " + str(bot.user))
+    log.info("I'm in as %s", bot.user)
 
 
 @bot.event
 async def on_guild_join(guild):
-    # Send a Hello only to 'general' channel, if exists.
+    # Send a Hello only to 'general' channel, if it exists.
     general = discord.utils.find(lambda x: x.name == "general", guild.text_channels)
     if general and general.permissions_for(guild.me).send_messages:
         await general.send(

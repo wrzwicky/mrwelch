@@ -1,3 +1,4 @@
 - [Python package installation](python-package-installation.md) — Replit's installer may normalize requested pins; check the generated dependency constraints.
-- [Inventory persistence](inventory-persistence.md) — Keep the bot's small, single-process inventory store local, versioned, and atomically written.
+- [Inventory persistence](inventory-persistence.md) — Keep local saves versioned and atomic, with visible temporary filenames.
 - [Bundled data paths](bundled-data-paths.md) — Resolve bot text assets relative to their module, not the test runner's `sys.path[0]`.
+- [Discord cog test configuration](discord-cog-test-configuration.md) — Pass test settings through the bot before extension setup; extension loading may discard earlier module patches.

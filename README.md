@@ -37,13 +37,17 @@ Create a file named `.env` with your discord keys. *Do not check this file into 
 
 ```
 DISCORD_AUTHOR_ID=<author ID>
-DISCORD_BOT_ID=<bot ID>
 DISCORD_BOT_SECRET=<bot token>
 ```
 
-## Run
+## Run App
 
 Start as regular Python program:
 ```
-python main.py
+uv run main.py
+```
+
+## Run Tests
+```
+uv run -m unittest
 ```

@@ -2,10 +2,10 @@
 
 ## Run on Replit
 
-- Runtime: Python 3.11. The project remains a Python Discord bot, not a website.
-- Replit dependencies are in `pyproject.toml` and `uv.lock`; restore with `uv sync`.
-  The imported Pipfile is retained for reference; its old lockfile is not used by Replit.
-- Workflow: **Discord bot**, running `python -u main.py` from the project root.
+- Runtime: Python 3.11. This project is a Python Discord bot, not a website.
+- Dependencies are defined in `pyproject.toml` and `uv.lock`; restore them with
+  `uv sync`. The imported Pipfile is retained for reference.
+- The **Discord bot** workflow runs `python -u main.py` from the project root.
 - Add these in Replit Secrets:
   - `DISCORD_BOT_SECRET`: the bot token from the Discord Developer Portal's Bot page.
     This is not the application's OAuth client secret.
@@ -21,7 +21,7 @@
 - If connection fails with a privileged-intent error, enable Message Content Intent
   in the Developer Portal. If commands receive no response, check the intent and
   channel permissions/overrides first.
-- Press Run. Successful connection logs `I'm in as ...`. No web preview is expected.
+- Press Run. A successful connection logs `I'm in as ...`. No web preview is expected.
 - The old Flask keep-alive helper is not started; it does not provide reliable
   continuous hosting.
 
@@ -35,7 +35,8 @@ tests do not connect to Discord and do not require bot secrets. Music remains
 disabled as in the imported project.
 
 Discord.py 2.x requires async extension setup and explicit gateway intents.
-Keep those requirements when adding new cogs. Player inventories are saved to
+Keep those requirements when adding cogs. Player inventories are saved to
 `data/inventories.json` after changes and restored when the inventory cog loads.
-That runtime data file is local to the Replit project and is excluded from Git;
-keep a backup if the inventory is important.
+This runtime data file is local to the Replit project and excluded from Git.
+Invalid or unreadable saved data stops startup with an explicit error instead
+of being overwritten.
