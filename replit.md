@@ -34,6 +34,20 @@ of cog loading, inventory command behavior, and startup failure messages. These
 tests do not connect to Discord and do not require bot secrets. Music remains
 disabled as in the imported project.
 
+### Live Discord smoke check
+
+A live check was completed in the owner's personal experimentation server
+(there is no dedicated test server). The documented Message Content Intent and
+channel permissions were sufficient: `^help` sent an embed, a direct bot
+mention with `1` returned a quote, `^give` with a selected member mention added
+a thumbs-up reaction, and inventory listing and item cleanup worked. In command
+examples, `@user` is a placeholder; select the actual member with Discord's
+mention picker rather than typing the placeholder literally.
+
+Inventory replies were reported to appear twice in the experimentation server.
+The configured Replit workflow had one bot process during the check, and the
+source of the duplicate replies was not determined.
+
 Discord.py 2.x requires async extension setup and explicit gateway intents.
 Keep those requirements when adding cogs. Player inventories are saved to
 `data/inventories.json` after changes and restored when the inventory cog loads.
