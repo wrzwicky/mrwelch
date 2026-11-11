@@ -236,7 +236,7 @@ class InventoryCog(commands.Cog):
 
         inventory = self.allInventory.get(self._user_id(user))
         description = inventory.describe() if inventory else ""
-        await ctx.reply(f"{intro} {description or 'nothing'}.")
+        await ctx.reply(f"{intro} {description or 'nothing and should be ashamed'}.")
 
     @commands.command()
     async def pocket(self, ctx, item: str):
